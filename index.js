@@ -13,10 +13,15 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
+// Default route to check server
+app.get('/', (req, res) => {
+  res.send('Server is running!');
+});
+
 // Signup route
 app.post('/signup', async (req, res) => {
   const { username, email, password } = req.body;
-  
+
   try {
     // Check if user already exists
     const userExists = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
@@ -72,27 +77,8 @@ app.post('/login', async (req, res) => {
   }
 });
 
-// Protected route example
-app.get('/protected', async (req, res) => {
-  const token = req.headers['authorization'];
-
-  if (!token) {
-    return res.status(403).json({ message: 'No token provided' });
-  }
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await pool.query('SELECT * FROM users WHERE id = $1', [decoded.id]);
-    if (user.rows.length === 0) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    res.status(200).json({ user: user.rows[0] });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.listen(process.env.PORT, () => {
-  console.log(`Server running on port ${process.env.PORT}`);
+// Start the server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
